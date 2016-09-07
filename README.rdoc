@@ -1,0 +1,5 @@
+= ShopifyHooks
+
+You Must add 'delayed_job_active_record' to gemfile
+
+This project rocks and uses MIT-LICENSE.
