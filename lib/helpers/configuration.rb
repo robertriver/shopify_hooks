@@ -4,10 +4,7 @@ module Configuration
     yield self
   end
 
-  def define_setting(name, default = nil, required = false)
-    if required && !default
-      raise (name + ' is required for ShopifyHook Gem: Please set this in an initializer')
-    end
+  def define_setting(name, required = false, default = nil)
     class_variable_set("@@#{name}", default)
 
     define_class_method "#{name}=" do |value|

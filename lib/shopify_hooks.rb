@@ -14,4 +14,6 @@ module ShopifyHooks
   define_setting :shopify_shared_secret,true
   define_setting :shopify_multipass_secret,true
   define_setting :given_app_proc, true
+
+
 end
