@@ -4,7 +4,7 @@ module Configuration
     yield self
   end
 
-  def define_setting(name, required = false, default = nil)
+  def define_setting(name, default = nil)
     class_variable_set("@@#{name}", default)
 
     define_class_method "#{name}=" do |value|
