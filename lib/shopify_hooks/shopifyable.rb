@@ -1,3 +1,4 @@
+
 module ShopifyHooks
   module Shopifyable
     extend ActiveSupport::Concern
@@ -37,13 +38,13 @@ module ShopifyHooks
       def save_object(shopify_object)
         begin
         check_shopify_calls
-        puts shopify_object.attributes
         if shopify_object.save
           puts 'Updating and/or creating on Shopify'
         else
           p "#{shopify_object.sku} had errors  #{shopify_object.errors.messages}"
         end
         rescue => e
+          p e
         end
       end
 
@@ -72,22 +73,30 @@ module ShopifyHooks
           puts e
           # Add Errors to model to notify user that it did not persist to Shopify
           object.errors.add(:shopify_update, "Update or Create Failed. Error: #{e.message}")
-        else
+        end
           # Only if object saves set the proper ID
           if object.shopify_variation_id == new_variant.id && !object.shopify_variation_id.nil?
             return
           else
             if object.is_default
+              puts "DEFAULT"
               check_shopify_calls
               object.shopify_variation_id = ShopifyAPI::Product.find(new_variant.product_id).variants.first.id
             else
+              if !new_variant.errors.messages.empty?
+                CSV.open('public/errored_products.csv', 'a+') do |csv|
+                  csv << new_variant.attributes.values.to_a + new_variant.errors.messages.values.to_a.flatten
+                end
+                puts "SOMETHING HAPPENED WITH THIS PRODUCT AND REQUIRES MANUAL INTERVENTION"
+                return
+              end
               object.shopify_variation_id = new_variant.id
             end
             object.save
           end
-        end
+        # end
       end
-
+      #
       def destroy_object(object)
         begin
         case(true)
@@ -111,6 +120,7 @@ module ShopifyHooks
       end
 
       def create_product(object)
+        puts "CREATING PRODUCT"
         # ShopifyAPI::Base.site || set_shop
         new_product = ShopifyAPI::Product.new
         set_synced_fields(new_product, object)
@@ -164,9 +174,11 @@ module ShopifyHooks
           product = find(object)
           set_synced_fields(product, object)
         elsif object.shopify_variation_id.nil? && object.is_a?(ProductVariation)
+          # binding.pry
           create_variant(object)
         elsif !object.shopify_variation_id.nil? && object.is_a?(ProductVariation)
           variant = find(object)
+          # binding.pry
           set_synced_variation_fields(variant,object)
         end
       end
@@ -179,12 +191,15 @@ module ShopifyHooks
       end
 
       def set_synced_variation_fields(shopify_product, new_or_updated_product)
+        # binding.pry
         shopify_product.sku =  new_or_updated_product.sku
         shopify_product.description =  (new_or_updated_product.try(:description) || new_or_updated_product.description)
         shopify_product.option1 =  new_or_updated_product.color.empty? ? 'Default Color' : new_or_updated_product.color
         shopify_product.option2 =  new_or_updated_product.size.empty? ? 'Default Size' : new_or_updated_product.size
+        shopify_product.option3 =  new_or_updated_product.power_tex_id.nil? ? 'No PowerTex ID' : new_or_updated_product.power_tex_id
         shopify_product.inventory_quantity =  new_or_updated_product.quantity_available
         shopify_product.prefix_options[:product_id] = new_or_updated_product.product.shopify_product_id
+
         save_object(shopify_product)
       end
 
@@ -194,7 +209,8 @@ module ShopifyHooks
         shopify_product.title = new_or_updated_product.try(:title) || ''
         shopify_product.options = [
             {"name": "Color", 'value': new_or_updated_product.try(:color)|| 'Default Color'},
-            {"name": "Size", 'value': new_or_updated_product.try(:size) || 'Default Size'}]
+            {"name": "Size", 'value': new_or_updated_product.try(:size) || 'Default Size'},
+            {"name": "PowerTexID", 'value': new_or_updated_product.try(:power_tex_id) || 'No Power Tex ID Set'}]
 
         shopify_product.body_html = new_or_updated_product.try(:description) # HTML for description
         shopify_product.vendor = ShopifyHooks.default_vendor || ''
