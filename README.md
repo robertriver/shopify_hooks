@@ -16,6 +16,17 @@ And then execute:
 
 ## Usage
 
+Add something like this or better checks to get a token and set your shop in application.rb. There is a better way.
+
+    config.after_initialize do
+      begin
+        ShopifyAPI::Base.site = ShopifyHooks.shopify_url
+        ShopifyAPI::Shop.current
+      rescue StandardError => error
+        puts error
+      end
+    end
+
 Create a `initializers/shopify_hooks.rb` file
 
 ```
