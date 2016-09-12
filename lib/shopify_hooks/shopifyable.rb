@@ -44,7 +44,6 @@ module ShopifyHooks
           p "#{shopify_object.sku} had errors  #{shopify_object.errors.messages}"
         end
         rescue => e
-          binding.pry
         end
       end
 
