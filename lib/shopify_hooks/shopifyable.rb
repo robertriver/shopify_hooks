@@ -1,4 +1,4 @@
-
+require 'pry'
 module ShopifyHooks
   module Shopifyable
     extend ActiveSupport::Concern
@@ -87,7 +87,19 @@ module ShopifyHooks
                 CSV.open('public/errored_products.csv', 'a+') do |csv|
                   csv << new_variant.attributes.values.to_a + new_variant.errors.messages.values.to_a.flatten
                 end
-                puts "SOMETHING HAPPENED WITH THIS PRODUCT AND REQUIRES MANUAL INTERVENTION"
+                check_shopify_calls
+                found_shopify_variant = ShopifyAPI::Product.find(new_variant.product_id).variants.select do |variant|
+                  variant.attributes['option1'] == new_variant.attributes['option1'].to_s &&
+                  variant.attributes['option2'] == new_variant.attributes['option2'].to_s &&
+                  variant.attributes['option3'] == new_variant.attributes['option3'].to_s
+                end
+                if found_shopify_variant.empty?
+                  puts "SOMETHING HAPPENED WITH THIS PRODUCT AND MAY REQUIRE MANUAL INTERVENTION. Check the logs or error"
+                else
+                  puts "Already found on Shopify. Setting Variant ID to the same as Shopify"
+                  object.shopify_variation_id = found_shopify_variant.first.id
+                  object.save
+                end
                 return
               end
               object.shopify_variation_id = new_variant.id
@@ -174,11 +186,9 @@ module ShopifyHooks
           product = find(object)
           set_synced_fields(product, object)
         elsif object.shopify_variation_id.nil? && object.is_a?(ProductVariation)
-          # binding.pry
           create_variant(object)
         elsif !object.shopify_variation_id.nil? && object.is_a?(ProductVariation)
           variant = find(object)
-          # binding.pry
           set_synced_variation_fields(variant,object)
         end
       end
@@ -191,7 +201,6 @@ module ShopifyHooks
       end
 
       def set_synced_variation_fields(shopify_product, new_or_updated_product)
-        # binding.pry
         shopify_product.sku =  new_or_updated_product.sku
         shopify_product.description =  (new_or_updated_product.try(:description) || new_or_updated_product.description)
         shopify_product.option1 =  new_or_updated_product.color.empty? ? 'Default Color' : new_or_updated_product.color
