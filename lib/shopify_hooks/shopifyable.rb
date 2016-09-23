@@ -45,6 +45,8 @@ module ShopifyHooks
         end
         rescue => e
           p e
+          p '<<< Backtrace >>>>'
+          p e.backtrace.join("\n")
         end
       end
 
@@ -110,14 +112,20 @@ module ShopifyHooks
       end
       #
       def destroy_object(object)
+        # Dont destroy just set to published_at = nil for products and set inventory to 0 for variants
+        # Variants don't have unpublish/published
         begin
         case(true)
           when object.is_a?(Product)
             check_shopify_calls
-            ShopifyAPI::Product.find(object.shopify_product_id).destroy
+            product = ShopifyAPI::Product.find(object.shopify_product_id)
+            product.published_at = nil
+            product.save
           when object.is_a?(ProductVariation)
             check_shopify_calls
-            ShopifyAPI::Variant.find(object.shopify_variation_id).destroy
+            variant = ShopifyAPI::Variant.find(object.shopify_variation_id)
+            variant.inventory_quantity = 0
+            variant.save
           else
             raise('Not Shopify Variant or Product Error')
         end
@@ -209,7 +217,7 @@ module ShopifyHooks
         shopify_product.inventory_quantity =  new_or_updated_product.quantity_available
         shopify_product.prefix_options[:product_id] = new_or_updated_product.product.shopify_product_id
 
-        save_object(shopify_product)
+          save_object(shopify_product)
       end
 
       def set_synced_fields(shopify_product, new_or_updated_product)
@@ -224,9 +232,6 @@ module ShopifyHooks
         shopify_product.body_html = new_or_updated_product.try(:description) # HTML for description
         shopify_product.vendor = ShopifyHooks.default_vendor || ''
         save_object(shopify_product) # Save to get access to Variants for certain Meta Data
-        new_or_updated_product.product_variations.each do |pv|
-          create_variant(pv)
-        end
       end
 
       def get_tags_from_object(type, object)
