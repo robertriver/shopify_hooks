@@ -6,16 +6,8 @@ class ShopifyOrderWorker < ActiveJob::Base
   queue_as :default
 
   def perform(user_email,shopify_order)
-    shopify_customer = ShopifyAPI::Customer.where(email: user_email).first
-    variant_ids = json_product_id_path(shopify_customer)
-    ShopifyHooks::given_app_proc.call({shopify_ids: variant_ids,order:shopify_order, customer: shopify_customer})
-  end
-
-
-  def json_product_id_path(shopify_customer)
-    path = JsonPath.new('$..variant_id')
-    json = shopify_customer.orders.to_json
-    shopify_ids = path.on(json)
+    shopify_customer = ShopifyAPI::Customer.search(query: 'boone.garrett@gmail.com').first
+    ShopifyHooks::given_app_proc.call({order:shopify_order, customer: shopify_customer})
   end
 
   def user_by_lower(user_email)
