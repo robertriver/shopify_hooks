@@ -210,7 +210,7 @@ module ShopifyHooks
 
       def set_synced_variation_fields(shopify_product, new_or_updated_product)
         shopify_product.sku =  new_or_updated_product.sku
-        shopify_product.description =  (new_or_updated_product.try(:description) || new_or_updated_product.description)
+        # shopify_product.description =  (new_or_updated_product.try(:description) || new_or_updated_product.description)
         shopify_product.option1 =  new_or_updated_product.color.empty? ? 'Default Color' : new_or_updated_product.color
         shopify_product.option2 =  new_or_updated_product.size.empty? ? 'Default Size' : new_or_updated_product.size
         shopify_product.option3 =  new_or_updated_product.power_tex_id.nil? ? 'No PowerTex ID' : new_or_updated_product.power_tex_id
@@ -229,7 +229,7 @@ module ShopifyHooks
             {"name": "Size", 'value': new_or_updated_product.try(:size) || 'Default Size'},
             {"name": "PowerTexID", 'value': new_or_updated_product.try(:power_tex_id) || 'No Power Tex ID Set'}]
 
-        shopify_product.body_html = new_or_updated_product.try(:description) # HTML for description
+        # shopify_product.body_html = new_or_updated_product.try(:description) # HTML for description
         shopify_product.vendor = ShopifyHooks.default_vendor || ''
         save_object(shopify_product) # Save to get access to Variants for certain Meta Data
       end
