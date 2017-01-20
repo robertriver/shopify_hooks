@@ -6,7 +6,7 @@ class ShopifyOrderWorker < ActiveJob::Base
   queue_as :default
 
   def perform(user_email,shopify_order)
-    shopify_customer = ShopifyAPI::Customer.search(query: 'boone.garrett@gmail.com').first
+    shopify_customer = ShopifyAPI::Customer.search(query: user_email).first
     ShopifyHooks::given_app_proc.call({order:shopify_order, customer: shopify_customer})
   end
 
