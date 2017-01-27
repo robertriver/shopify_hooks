@@ -1,4 +1,3 @@
-require 'pry'
 module ShopifyHooks
   module Shopifyable
     extend ActiveSupport::Concern
