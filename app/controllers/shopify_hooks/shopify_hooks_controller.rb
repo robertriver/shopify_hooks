@@ -10,6 +10,13 @@ module ShopifyHooks
     # def customers
     # end
 
+    def create_refund
+      shopify_refund = params
+      user_email = shopify_refund["email"]
+      ShopifyRefundWorker.perform_later(user_email,shopify_refund)
+      render json: {status: 200}
+    end
+
     def create_order
       shopify_order = params
       user_email = shopify_order["email"]

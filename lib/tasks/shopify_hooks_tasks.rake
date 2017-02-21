@@ -18,6 +18,18 @@ namespace :shopify_tasks do
     end
   end
 
+
+  desc "Create Webhooks For Refunds"
+  task :create_refund_webhooks => :environment do
+    ShopifyRakeHelper::set_shop
+    topics = [
+        "refunds/create",
+    ]
+    topics.each do |topic|
+      ShopifyRakeHelper::create_webhook(topic)
+    end
+  end
+
   desc "Create Webhooks For Orders"
   task :create_order_webhooks => :environment do
     ShopifyRakeHelper::set_shop
@@ -69,6 +81,7 @@ namespace :shopify_tasks do
     Rake::Task["environment"].invoke
     Rake::Task["shopify_tasks:create_order_webhooks"].invoke
     Rake::Task["shopify_tasks:create_product_webhooks"].invoke
+    Rake::Task["shopify_tasks:create_refund_webhooks"].invoke
   end
 
 end
