@@ -14,6 +14,8 @@ module ShopifyHooks
   define_setting :shopify_shared_secret
   define_setting :shopify_multipass_secret
   define_setting :given_app_proc
+  define_setting :order_fulfilled_proc
+  define_setting :order_paid_proc
   define_setting :refund_proc
 
 

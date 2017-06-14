@@ -30,11 +30,22 @@ namespace :shopify_tasks do
     end
   end
 
+  desc "create certain hooks"
+  task create_specific_hook: :environment do
+    ShopifyRakeHelper::set_shop
+    topics = ENV['HOOKS'].split(',')
+    topics.each do |topic|
+      ShopifyRakeHelper::create_webhook(topic)
+    end
+  end
+
   desc "Create Webhooks For Orders"
   task :create_order_webhooks => :environment do
     ShopifyRakeHelper::set_shop
     topics = [
         "orders/create",
+        "orders/paid",
+        "orders/fulfilled",
     ]
     topics.each do |topic|
       ShopifyRakeHelper::create_webhook(topic)
