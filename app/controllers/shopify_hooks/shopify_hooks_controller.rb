@@ -24,6 +24,20 @@ module ShopifyHooks
       render json: {status: 200}
     end
 
+    def create_order_paid
+      shopify_order = params.as_json
+      user_email = shopify_order["email"]
+      ShopifyOrderPaidWorker.perform_later(user_email,shopify_order)
+      render json: {status: 200}
+    end
+
+    def create_order_fulfilled
+      shopify_order = params.as_json
+      user_email = shopify_order["email"]
+      ShopifyOrderFulfilledWorker.perform_later(user_email,shopify_order)
+      render json: {status: 200}
+    end
+
     def create_product(new_or_updated_product = false)
       if !new_or_updated_product
         new_or_updated_product = params.as_json
