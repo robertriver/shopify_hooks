@@ -8,6 +8,8 @@ ShopifyHooks::Engine.routes.draw do
 
     scope 'orders' do
       post '/create' => 'shopify_hooks/shopify_hooks#create_order'
+      post '/paid' => 'shopify_hooks/shopify_hooks#create_order_paid'
+      post '/fulfilled' => 'shopify_hooks/shopify_hooks#create_order_fulfilled'
       post '/update' => 'shopify_hooks/shopify_hooks#update_order'
     end
 
