@@ -1,5 +1,5 @@
 # Task to Set Up Shopify Webhook Endpoints
-require 'pg'
+require 'sqlite3'
 require 'helpers/shopify_rake_helper'
 
 namespace :shopify_tasks do
